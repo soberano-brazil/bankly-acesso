@@ -1,10 +1,13 @@
 {
-  "name": "bankly-acesso",
+  "name": "@soberano-brazil/bankly-acesso",
   "version": "0.1.0",
   "description": "Biblioteca que abstrai comunicação com a bankly.com.br",
   "main": "build/index.js",
   "types": "build/index.d.ts",
-  "repository": "https://github.com/soberano-brazil/bankly-acesso.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soberano-brazil/bankly-acesso.git"
+  },
   "author": "Soberano Brazil <contato@soberano.com.br>",
   "license": "MIT",
   "scripts": {
@@ -34,5 +37,12 @@
     "prettier": "^1.18.2",
     "sucrase": "^3.10.1",
     "typescript": "^3.7.3"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/soberano-brazil/bankly-acesso/issues"
+  },
+  "homepage": "https://github.com/soberano-brazil/bankly-acesso#readme",
+  "keywords": [
+    "bankly"
+  ]
 }
