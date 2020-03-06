@@ -102,7 +102,7 @@ class BanklyLib {
       data: {
         status: { name: string; timeOfStatus: string; }[]
       }
-    } = await Axios.get(`${this.urlBase}/api/fund-transfers/${authenticationId}/status?branch=${branch}&account=${account}`, {
+    } = await Axios.get(`${this.urlBase}/baas/fund-transfers/${authenticationId}/status?branch=${branch}&account=${account}`, {
       headers: {
         'api-version': '1',
         'x-correlation-id': uuid.v4(),
