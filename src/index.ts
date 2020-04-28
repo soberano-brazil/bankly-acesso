@@ -4,9 +4,11 @@ import querystring from 'query-string';
 import * as uuid from 'uuid';
 
 interface BanklyAuthentication {
-  grant_type: string;
+  grant_type: 'client_credentials' | 'password';
   client_id: string;
   client_secret: string;
+  username?: string;
+  password?: string;
 }
 
 interface TransferData {
@@ -24,6 +26,50 @@ interface TransferData {
     document: string;
     name: string;
   };
+}
+
+interface ImagesArrayStatus {
+  documentType: string,
+  documentSide: string,
+  uploadDate: string,
+  rejectedReasons?: string[],
+}
+
+interface ImagesToSend {
+  document: string,
+  documentType: 'Selfie' | 'RG' | 'CNH',
+  documentSide: 'Front' | 'Back'
+  file: string,
+}
+
+interface UserDataToSend {
+  document: string;
+  firstName: string;
+  surname: string;
+  socialName: string;
+  password: string;
+  countryCallingCode: string;
+  phoneNumber: string;
+  motherName: string;
+  birthday: string;
+  email: string;
+  address: {
+    zipCode: string;
+    addressLine: string;
+    addressNumber: string;
+    complement: string;
+    neighborhood: string;
+    country: string;
+    addressState: string;
+    city: string;
+  };
+}
+
+interface GetEnventsParans {
+  agency: string;
+  account: string;
+  page?: number;
+  pageSize?: number;
 }
 
 class BanklyLib {
@@ -67,19 +113,15 @@ class BanklyLib {
     return this.token;
   }
 
-  public getEvents = async (agency: string, account: string) => {
-    const response = await Axios.get(`${this.urlBase}/baas/events?branch=${agency}&account=${account}&IncludeDetails=true`, {
+  public getEvents = async ({ agency, account, page = 1, pageSize = 20 }: GetEnventsParans) => {
+    const response = await Axios.get(`${this.urlBase}/baas/events?branch=${agency}&account=${account}&IncludeDetails=true&Page=${page}&Pagesize=${pageSize}`, {
       headers: {
         'api-version': '1',
         'x-correlation-id': uuid.v4(),
         Authorization: `${this.tokenType} ${await this.getToken()}`,
       },
     });
-    return {
-      totalItens: response.data.totalItens,
-      itens: response.data.itens,
-      pageIndex: response.data.pageIndex,
-    };
+    return response.data;
   }
 
   public sendTransfer = async (options: TransferData) => {
@@ -128,7 +170,89 @@ class BanklyLib {
       },
     });
 
+    return response.data;
+  }
+
+  public getDocumentImageStatus = async (document: string) => {
+    const response: {
+      data: {
+        document: string,
+        lastStatus: {
+          situation: string,
+          date: string,
+        },
+        images: ImagesArrayStatus[];
+      }
+    } = await Axios.get(`${this.urlBase}/baas/documents?document=${document}`, {
+      headers: {
+        'api-version': '1',
+        'x-correlation-id': uuid.v4(),
+        Authorization: `${this.tokenType} ${await this.getToken()}`,
+      },
+    });
+
     return { ...response.data };
+  }
+
+  public getDocumentStatus = async (document: string) => {
+    const response: {
+      data: {
+        document: string,
+        lastStatus: {
+          situation: string,
+          date: string,
+        }
+      }
+    } = await Axios.get(`${this.urlBase}/baas/onboardstatus/${document}/status`, {
+      headers: {
+        'api-version': '1',
+        'x-correlation-id': uuid.v4(),
+        Authorization: `${this.tokenType} ${await this.getToken()}`,
+      },
+    });
+
+    return { ...response.data };
+  }
+
+  public getDocumentAccount = async (document: string) => {
+    const response: {
+      data: {
+        bankBranch: string,
+        accountNumber: string,
+      }
+    } = await Axios.get(`${this.urlBase}/baas/person-account/${document}`, {
+      headers: {
+        'api-version': '1',
+        'x-correlation-id': uuid.v4(),
+        Authorization: `${this.tokenType} ${await this.getToken()}`,
+      },
+    });
+
+    return { ...response.data };
+  }
+
+  public postImagesDocument = async (data: ImagesToSend) => {
+    const response = await Axios.post(`${this.urlBase}/baas/documents`, data, {
+      headers: {
+        'api-version': '1',
+        'x-correlation-id': uuid.v4(),
+        Authorization: `${this.tokenType} ${await this.getToken()}`,
+      },
+    });
+
+    return response.data;
+  }
+
+  public postUserData = async (data: UserDataToSend) => {
+    const response = await Axios.post(`${this.urlBase}/baas/person-rating`, data, {
+      headers: {
+        'api-version': '1',
+        'x-correlation-id': uuid.v4(),
+        Authorization: `${this.tokenType} ${await this.getToken()}`,
+      },
+    });
+
+    return response.data;
   }
 
 };
