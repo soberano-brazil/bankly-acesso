@@ -84,6 +84,11 @@ class BanklyLib {
 
   public constructor(credentials: BanklyAuthentication) {
     this.credentials = credentials;
+    this.getToken();
+  }
+
+  public sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   public getNewToken = async () => {
@@ -105,7 +110,7 @@ class BanklyLib {
   }
 
   public getToken = async () => {
-    const difference = differenceInMinutes(new Date(), this.tokenEnds);
+    const difference = differenceInMinutes(this.tokenEnds, new Date());
     if (this.token && difference >= 15) {
       return this.token;
     }
