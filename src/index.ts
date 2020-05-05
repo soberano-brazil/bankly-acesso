@@ -219,6 +219,20 @@ class BanklyLib {
     return { ...response.data };
   }
 
+  public postCreateAccount = async (document: string) => {
+    const response = await Axios.post(`${this.urlBase}/baas/person-account`, {
+      document,
+    }, {
+      headers: {
+        'api-version': '1',
+        'x-correlation-id': uuid.v4(),
+        Authorization: `${this.tokenType} ${await this.getToken()}`,
+      },
+    });
+
+    return response.data;
+  }
+
   public getDocumentAccount = async (document: string) => {
     const response: {
       data: {
