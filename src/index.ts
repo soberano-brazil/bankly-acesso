@@ -257,6 +257,7 @@ class BanklyLib {
         'x-correlation-id': uuid.v4(),
         Authorization: `${this.tokenType} ${await this.getToken()}`,
       },
+      maxContentLength: Infinity,
     });
 
     return response.data;
