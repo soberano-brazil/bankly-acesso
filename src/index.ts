@@ -119,7 +119,7 @@ class BanklyLib {
   }
 
   public getEvents = async ({ agency, account, page = 1, pageSize = 20 }: GetEnventsParans) => {
-    const response = await Axios.get(`${this.urlBase}/baas/events?branch=${agency}&account=${account}&IncludeDetails=true&Page=${page}&Pagesize=${pageSize}`, {
+    const response = await Axios.get(`${this.urlBase}/baas/events?Branch=${agency}&Account=${account}&IncludeDetails=true&Page=${page}&Pagesize=${pageSize}`, {
       headers: {
         'api-version': '1',
         'x-correlation-id': uuid.v4(),
