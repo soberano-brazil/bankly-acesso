@@ -13,6 +13,7 @@ interface BanklyAuthentication {
 
 interface TransferData {
   amount: number;
+  description: string;
   sender: {
     branch: string;
     account: string;
