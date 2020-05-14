@@ -93,21 +93,25 @@ class BanklyLib {
   }
 
   public getNewToken = async () => {
-    const response = await Axios.post(this.urlToken,
-      querystring.stringify({
-        ...this.credentials,
-      }),
-      {
-        headers: {
-          'Accept': 'application/x-www-form-urlencoded',
-          'Content-Type': 'application/x-www-form-urlencoded',
+    try {
+      const response = await Axios.post(this.urlToken,
+        querystring.stringify({
+          ...this.credentials,
+        }),
+        {
+          headers: {
+            'Accept': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         },
-      },
-    );
-    this.token = response.data.access_token;
-    this.tokenType = response.data.token_type;
-    this.tokenEnds = addSeconds(new Date(), response.data.expires_in);
-    return true;
+      );
+      this.token = response.data.access_token;
+      this.tokenType = response.data.token_type;
+      this.tokenEnds = addSeconds(new Date(), response.data.expires_in);
+      return true;
+    } catch (err) {
+      throw `getNewToken: ${err.message}`;
+    }
   }
 
   public getToken = async () => {
@@ -120,160 +124,200 @@ class BanklyLib {
   }
 
   public getEvents = async ({ agency, account, page = 1, pageSize = 20 }: GetEnventsParans) => {
-    const response = await Axios.get(`${this.urlBase}/baas/events?Branch=${agency}&Account=${account}&IncludeDetails=true&Page=${page}&Pagesize=${pageSize}`, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await Axios.get(`${this.urlBase}/baas/events?Branch=${agency}&Account=${account}&IncludeDetails=true&Page=${page}&Pagesize=${pageSize}`, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (err) {
+      throw `getEvents: ${err.message}`;
+    }
   }
 
   public sendTransfer = async (options: TransferData) => {
-    const response = await Axios.post(`${this.urlBase}/baas/fund-transfers`, {
-      ...options,
-    }, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
-    return {
-      authenticationCode: response.data.authenticationCode,
-    };
+    try {
+      const response = await Axios.post(`${this.urlBase}/baas/fund-transfers`, {
+        ...options,
+      }, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
+      return {
+        authenticationCode: response.data.authenticationCode,
+      };
+    } catch (err) {
+      throw `sendTransfer: ${err.message}`;
+    }
   }
 
   public getTransfer = async (authenticationId: string, branch: string, account: string) => {
-    const response: {
-      data: {
-        status: { name: string; timeOfStatus: string; }[]
-      }
-    } = await Axios.get(`${this.urlBase}/baas/fund-transfers/${authenticationId}/status?branch=${branch}&account=${account}`, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
-    return {
-      status: response.data.status,
-    };
+    try {
+      const response: {
+        data: {
+          status: { name: string; timeOfStatus: string; }[]
+        }
+      } = await Axios.get(`${this.urlBase}/baas/fund-transfers/${authenticationId}/status?branch=${branch}&account=${account}`, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
+      return {
+        status: response.data.status,
+      };
+    } catch (err) {
+      throw `getTransfer: ${err.message}`;
+    }
   }
 
   public getBalance = async (branch: string, account: string) => {
-    const response: {
-      data: {
-        available: number,
-        blocked: number,
-      }
-    } = await Axios.get(`${this.urlBase}/baas/account/balance?branch=${branch}&account=${account}`, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
+    try {
+      const response: {
+        data: {
+          available: number,
+          blocked: number,
+        }
+      } = await Axios.get(`${this.urlBase}/baas/account/balance?branch=${branch}&account=${account}`, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (err) {
+      throw `getBalance: ${err.message}`;
+    }
   }
 
   public getDocumentImageStatus = async (document: string) => {
-    const response: {
-      data: {
-        document: string,
-        lastStatus: {
-          situation: string,
-          date: string,
+    try {
+      const response: {
+        data: {
+          document: string,
+          lastStatus: {
+            situation: string,
+            date: string,
+          },
+          images: ImagesArrayStatus[];
+        }
+      } = await Axios.get(`${this.urlBase}/baas/documents?document=${document}`, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
         },
-        images: ImagesArrayStatus[];
-      }
-    } = await Axios.get(`${this.urlBase}/baas/documents?document=${document}`, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
+      });
 
-    return { ...response.data };
+      return { ...response.data };
+    } catch (err) {
+      throw `getDocumentImageStatus: ${err.message}`;
+    }
   }
 
   public getDocumentStatus = async (document: string) => {
-    const response: {
-      data: {
-        document: string,
-        lastStatus: {
-          situation: string,
-          date: string,
+    try {
+      const response: {
+        data: {
+          document: string,
+          lastStatus: {
+            situation: string,
+            date: string,
+          }
         }
-      }
-    } = await Axios.get(`${this.urlBase}/baas/onboardstatus/${document}/status`, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
+      } = await Axios.get(`${this.urlBase}/baas/onboardstatus/${document}/status`, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
 
-    return { ...response.data };
+      return { ...response.data };
+    } catch (err) {
+      throw `getDocumentStatus: ${err.message}`;
+    }
   }
 
   public postCreateAccount = async (document: string) => {
-    const response = await Axios.post(`${this.urlBase}/baas/person-account`, {
-      document,
-    }, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
+    try {
+      const response = await Axios.post(`${this.urlBase}/baas/person-account`, {
+        document,
+      }, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (err) {
+      throw `postCreateAccount: ${err.message}`;
+    }
   }
 
   public getDocumentAccount = async (document: string) => {
-    const response: {
-      data: {
-        bankBranch: string,
-        accountNumber: string,
-      }
-    } = await Axios.get(`${this.urlBase}/baas/person-account/${document}`, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
+    try {
+      const response: {
+        data: {
+          bankBranch: string,
+          accountNumber: string,
+        }
+      } = await Axios.get(`${this.urlBase}/baas/person-account/${document}`, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
 
-    return { ...response.data };
+      return { ...response.data };
+    } catch (err) {
+      throw `getDocumentAccount: ${err.message}`;
+    }
   }
 
   public postImagesDocument = async (data: ImagesToSend) => {
-    const response = await Axios.post(`${this.urlBase}/baas/documents`, data, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-      maxContentLength: Infinity,
-    });
+    try {
+      const response = await Axios.post(`${this.urlBase}/baas/documents`, data, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+        maxContentLength: Infinity,
+      });
 
-    return response.data;
+      return response.data;
+    } catch (err) {
+      throw `postImagesDocument: ${err.message}`;
+    }
   }
 
   public postUserData = async (data: UserDataToSend) => {
-    const response = await Axios.post(`${this.urlBase}/baas/person-rating`, data, {
-      headers: {
-        'api-version': '1',
-        'x-correlation-id': uuid.v4(),
-        Authorization: `${this.tokenType} ${await this.getToken()}`,
-      },
-    });
+    try {
+      const response = await Axios.post(`${this.urlBase}/baas/person-rating`, data, {
+        headers: {
+          'api-version': '1',
+          'x-correlation-id': uuid.v4(),
+          Authorization: `${this.tokenType} ${await this.getToken()}`,
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (err) {
+      throw `postUserData: ${err.message}`;
+    }
   }
 
 };
